@@ -20,6 +20,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -105,6 +106,7 @@ export default function EditProductForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogDescription className="sr-only">Edit Product</DialogDescription>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>

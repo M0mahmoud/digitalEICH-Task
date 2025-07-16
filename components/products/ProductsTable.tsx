@@ -6,13 +6,14 @@ import {
   useDeleteProduct,
 } from "@/hooks/products";
 import { IProduct } from "@/types/products";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import React, { useState } from "react";
 import TablePagination from "../layout/TablePagination";
 import { Button } from "../ui/button";
 import EditProductForm from "./EditProductForm";
 import DeleteProductDialog from "./DeleteProductDialog";
+import ProductDetailsModal from "./ProductDetailsModal";
 
 import {
   Table,
@@ -30,6 +31,8 @@ export default function ProductsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [productToView, setProductToView] = useState<IProduct | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const totalCount = 48; // This should be fetched from the API
   const limit = 6;
@@ -48,6 +51,11 @@ export default function ProductsTable() {
   const handleEdit = (product: IProduct) => {
     setSelectedProduct(product);
     setIsEditModalOpen(true);
+  };
+
+  const handleView = (product: IProduct) => {
+    setProductToView(product);
+    setIsViewModalOpen(true);
   };
 
   const handleUpdateProduct = (id: number, updatedProduct: IProduct) => {
@@ -156,8 +164,19 @@ export default function ProductsTable() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleView(product)}
+                        className="h-8 w-8 p-0 hover:bg-muted"
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleEdit(product)}
                         className="h-8 w-8 p-0 hover:bg-muted"
+                        title="Edit Product"
                       >
                         <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Button>
@@ -167,6 +186,7 @@ export default function ProductsTable() {
                         size="sm"
                         onClick={() => handleDelete(product)}
                         className="h-8 w-8 p-0 hover:bg-muted"
+                        title="Delete Product"
                       >
                         <Trash2 className="h-4 w-4 text-red-500 hover:text-red-400" />
                       </Button>
@@ -210,6 +230,17 @@ export default function ProductsTable() {
           }}
           onConfirm={handleConfirmDelete}
           isPending={isDeletePending}
+        />
+      )}
+
+      {productToView && (
+        <ProductDetailsModal
+          product={productToView}
+          isOpen={isViewModalOpen}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setProductToView(null);
+          }}
         />
       )}
     </>
