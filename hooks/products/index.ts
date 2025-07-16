@@ -8,7 +8,13 @@ import {
 import { INewProduct, IProduct } from "@/types/products";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useAllProducts({ page, limit }: { page: number; limit: number }) {
+export function useAllProducts({
+  page,
+  limit,
+}: {
+  page: number;
+  limit: number;
+}) {
   return useQuery({
     queryKey: ["products", { page, limit }],
     queryFn: () => getProducts({ page, limit }),
@@ -33,14 +39,13 @@ export function useCreateProduct() {
   });
 }
 
-export function useUpdateProduct(id: number, product: IProduct) {
+export function useUpdateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ["update-product", id, product],
-    mutationFn: () => updateProduct(id, product),
+    mutationFn: ({ id, product }: { id: number; product: IProduct }) =>
+      updateProduct(id, product),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product", product.id] });
     },
   });
 }

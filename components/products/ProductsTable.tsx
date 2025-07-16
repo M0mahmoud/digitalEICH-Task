@@ -1,12 +1,13 @@
 "use client";
 
-import { useAllProducts } from "@/hooks/products";
+import { useAllProducts, useUpdateProduct } from "@/hooks/products";
 import { IProduct } from "@/types/products";
 import { Edit, Trash2 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
-import React from "react";
+import React, { useState } from "react";
 import TablePagination from "../layout/TablePagination";
 import { Button } from "../ui/button";
+import EditProductForm from "./EditProductForm";
 
 import {
   Table,
@@ -20,6 +21,8 @@ import TableSkeleton from "../layout/TableSkeleton";
 
 export default function ProductsTable() {
   const [page, setPage] = useQueryState("page", parseAsInteger);
+  const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const totalCount = 48; // This should be fetched from the API
   const limit = 6;
@@ -28,6 +31,29 @@ export default function ProductsTable() {
     page: page ? page : 1,
     limit,
   });
+
+  const { mutate: updateProduct, isPending: isUpdatePending } =
+    useUpdateProduct();
+
+  const handleEdit = (product: IProduct) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = (id: number, updatedProduct: IProduct) => {
+    updateProduct(
+      { id, product: updatedProduct },
+      {
+        onSuccess: () => {
+          setIsEditModalOpen(false);
+          setSelectedProduct(null);
+        },
+        onError: (error: Error) => {
+          console.error("Error updating product:", error);
+        },
+      }
+    );
+  };
 
   const handleDelete = (id: number) => {
     // Implement delete functionality here
@@ -108,6 +134,7 @@ export default function ProductsTable() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleEdit(product)}
                         className="h-8 w-8 p-0 hover:bg-muted"
                       >
                         <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
@@ -137,6 +164,19 @@ export default function ProductsTable() {
           setCurrentPage={(pageNum) => setPage(pageNum)}
         />
       </div>
+
+      {selectedProduct && (
+        <EditProductForm
+          product={selectedProduct}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          onUpdate={handleUpdateProduct}
+          isPending={isUpdatePending}
+        />
+      )}
     </>
   );
 }
