@@ -6,14 +6,15 @@ import {
   useDeleteProduct,
 } from "@/hooks/products";
 import { IProduct } from "@/types/products";
-import { Edit, Trash2, Eye } from "lucide-react";
-import { parseAsInteger, useQueryState } from "nuqs";
-import React, { useState } from "react";
+import { Edit, Trash2, Eye, Search, Loader2, X } from "lucide-react";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import React, { useState, useEffect } from "react";
 import TablePagination from "../layout/TablePagination";
 import { Button } from "../ui/button";
 import EditProductForm from "./EditProductForm";
 import DeleteProductDialog from "./DeleteProductDialog";
 import ProductDetailsModal from "./ProductDetailsModal";
+import { useDebounce } from "@/hooks/use-debounce";
 
 import {
   Table,
@@ -24,9 +25,11 @@ import {
   TableRow,
 } from "../ui/table";
 import TableSkeleton from "../layout/TableSkeleton";
+import { Input } from "../ui/input";
 
 export default function ProductsTable() {
   const [page, setPage] = useQueryState("page", parseAsInteger);
+  const [query, setQuery] = useQueryState("q", parseAsString);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
@@ -34,12 +37,24 @@ export default function ProductsTable() {
   const [productToView, setProductToView] = useState<IProduct | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // Debounce the search query to reduce API calls
+  const debouncedQuery = useDebounce(query, 300);
+  const isSearching = query !== debouncedQuery;
+
+  // Reset page to 1 when search query changes
+  useEffect(() => {
+    if (query && page !== 1) {
+      setPage(1);
+    }
+  }, [query, page, setPage]);
+
   const totalCount = 48; // This should be fetched from the API
   const limit = 6;
 
   const { data, isPending, error } = useAllProducts({
     page: page ? page : 1,
     limit,
+    query: debouncedQuery,
   });
 
   const { mutate: updateProduct, isPending: isUpdatePending } =
@@ -112,6 +127,30 @@ export default function ProductsTable() {
   return (
     <>
       <div className="space-y-4">
+        <div className="relative max-w-64">
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          )}
+          <Input
+            placeholder="Search products..."
+            value={query || ""}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9 pr-9 bg-background"
+          />
+          {query && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setQuery("")}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
         <div className="border rounded-md bg-background">
           <Table>
             <TableHeader>

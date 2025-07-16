@@ -11,13 +11,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export function useAllProducts({
   page,
   limit,
+  query,
 }: {
   page: number;
   limit: number;
+  query: string | null;
 }) {
   return useQuery({
-    queryKey: ["products", { page, limit }],
-    queryFn: () => getProducts({ page, limit }),
+    queryKey: ["products", { page, limit, query }],
+    queryFn: () => getProducts({ page, limit, query }),
   });
 }
 
