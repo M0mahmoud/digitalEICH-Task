@@ -1,5 +1,7 @@
 import { Heading } from "@/components/layout/Heading";
 import PageContainer from "@/components/layout/PageContainer";
+import TableSkeleton from "@/components/layout/TableSkeleton";
+import ProductsTable from "@/components/products/ProductsTable";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -7,7 +9,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
-export default function Products() {
+export default async function Products() {
   return (
     <>
       <PageContainer>
@@ -25,7 +27,9 @@ export default function Products() {
             </Link>
           </div>
           <Separator />
-          <Suspense fallback={<div>Loading...</div>}>Table</Suspense>
+          <Suspense fallback={<TableSkeleton />}>
+            <ProductsTable />
+          </Suspense>
         </div>
       </PageContainer>
     </>

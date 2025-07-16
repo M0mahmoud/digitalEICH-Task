@@ -1,8 +1,10 @@
 import { apiClient } from "@/lib/apiClient";
 import { INewProduct, IProduct } from "@/types/products";
 
-export const getProducts = async (params: Record<string, any> = {}) => {
+export const getProducts = async ({ page = 1, limit = 6, ...rest } : { page?: number, limit?: number, [key: string]: any }) => {
   try {
+    const offset = (page - 1) * limit;
+    const params = { limit, offset, ...rest };
     const response = await apiClient("GET", "/products", { params });
     return response;
   } catch (error) {

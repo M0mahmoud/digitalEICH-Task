@@ -8,10 +8,10 @@ import {
 import { INewProduct, IProduct } from "@/types/products";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useAllProducts({ params }: { params: Record<string, any> }) {
+export function useAllProducts({ page, limit }: { page: number; limit: number }) {
   return useQuery({
-    queryKey: ["products", params],
-    queryFn: () => getProducts(params),
+    queryKey: ["products", { page, limit }],
+    queryFn: () => getProducts({ page, limit }),
   });
 }
 
