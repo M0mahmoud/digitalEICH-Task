@@ -1,6 +1,10 @@
 "use client";
 
-import { useAllProducts, useUpdateProduct } from "@/hooks/products";
+import {
+  useAllProducts,
+  useUpdateProduct,
+  useDeleteProduct,
+} from "@/hooks/products";
 import { IProduct } from "@/types/products";
 import { Edit, Trash2 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
@@ -8,6 +12,7 @@ import React, { useState } from "react";
 import TablePagination from "../layout/TablePagination";
 import { Button } from "../ui/button";
 import EditProductForm from "./EditProductForm";
+import DeleteProductDialog from "./DeleteProductDialog";
 
 import {
   Table,
@@ -23,6 +28,8 @@ export default function ProductsTable() {
   const [page, setPage] = useQueryState("page", parseAsInteger);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const totalCount = 48; // This should be fetched from the API
   const limit = 6;
@@ -34,6 +41,9 @@ export default function ProductsTable() {
 
   const { mutate: updateProduct, isPending: isUpdatePending } =
     useUpdateProduct();
+
+  const { mutate: deleteProduct, isPending: isDeletePending } =
+    useDeleteProduct();
 
   const handleEdit = (product: IProduct) => {
     setSelectedProduct(product);
@@ -55,9 +65,21 @@ export default function ProductsTable() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    // Implement delete functionality here
-    console.log(`Delete product with id: ${id}`);
+  const handleDelete = (product: IProduct) => {
+    setProductToDelete(product);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = (id: number) => {
+    deleteProduct(id, {
+      onSuccess: () => {
+        setIsDeleteDialogOpen(false);
+        setProductToDelete(null);
+      },
+      onError: (error: Error) => {
+        console.error("Error deleting product:", error);
+      },
+    });
   };
 
   const nextPage = () => {
@@ -143,7 +165,7 @@ export default function ProductsTable() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDelete(product)}
                         className="h-8 w-8 p-0 hover:bg-muted"
                       >
                         <Trash2 className="h-4 w-4 text-red-500 hover:text-red-400" />
@@ -175,6 +197,19 @@ export default function ProductsTable() {
           }}
           onUpdate={handleUpdateProduct}
           isPending={isUpdatePending}
+        />
+      )}
+
+      {productToDelete && (
+        <DeleteProductDialog
+          product={productToDelete}
+          isOpen={isDeleteDialogOpen}
+          onClose={() => {
+            setIsDeleteDialogOpen(false);
+            setProductToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          isPending={isDeletePending}
         />
       )}
     </>

@@ -50,13 +50,13 @@ export function useUpdateProduct() {
   });
 }
 
-export function useDeleteProduct(id: number) {
+export function useDeleteProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ["delete-product", id],
-    mutationFn: () => deleteProduct(id),
+    mutationFn: (id: number) => deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
+    mutationKey: ["deleteProduct"],
   });
 }
