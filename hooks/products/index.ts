@@ -22,14 +22,14 @@ export function useProductBySlug(slug: string) {
   });
 }
 
-export function useCreateProduct(product: INewProduct) {
+export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ["new-product", product],
-    mutationFn: () => createProduct(product),
+    mutationFn: (newProduct: INewProduct) => createProduct(newProduct),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
+    mutationKey: ["createProduct"],
   });
 }
 
