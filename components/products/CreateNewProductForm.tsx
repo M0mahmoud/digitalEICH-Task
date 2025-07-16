@@ -5,34 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2, Save } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAllCategories } from "@/hooks/categories";
-import { ICategory } from "@/types/products";
+import { Loader2, Save } from "lucide-react";
 import { useCreateProduct } from "@/hooks/products";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { newProductSchema } from "@/lib/zod-schema";
 import { z } from "zod";
+import CategorySelect from "@/components/ui/category-select";
 
 type FormData = z.infer<typeof newProductSchema>;
 
 export default function CreateNewProductForm() {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [formErrors, setFormErrors] = useState<{
     formErrors?: string[];
     fieldErrors?: Record<string, string[]>;
@@ -44,8 +28,6 @@ export default function CreateNewProductForm() {
     categoryId: "",
   });
 
-  const { data: categories, isLoading: isLoadingCategories } =
-    useAllCategories();
   const { mutate, isPending } = useCreateProduct();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,7 +54,6 @@ export default function CreateNewProductForm() {
             description: "",
             categoryId: "",
           });
-          setOpen(false);
           setFormErrors(null);
           router.push("/dashboard/products");
         },
@@ -159,70 +140,18 @@ export default function CreateNewProductForm() {
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Select Category</Label>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={open}
-                          className={`w-full justify-between`}
-                        >
-                          {newProduct.categoryId
-                            ? categories?.find(
-                                (cat: ICategory) =>
-                                  String(cat.id) === newProduct.categoryId
-                              )?.name || "Select Category"
-                            : "Select Category"}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search categories..."
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No categories found</CommandEmpty>
-                            <CommandGroup>
-                              {!isLoadingCategories &&
-                                categories?.map((category: ICategory) => (
-                                  <CommandItem
-                                    key={category.id}
-                                    value={String(category.id)}
-                                    onSelect={(currentValue) => {
-                                      setNewProduct((prev) => ({
-                                        ...prev,
-                                        categoryId: currentValue,
-                                      }));
-                                      setOpen(false);
-                                    }}
-                                  >
-                                    {category.name}
-                                    <Check
-                                      className={cn(
-                                        "ml-auto",
-                                        newProduct.categoryId ===
-                                          String(category.id)
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                  </CommandItem>
-                                ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    {formErrors?.fieldErrors?.categoryId && (
-                      <p className="text-red-500 text-sm">
-                        {formErrors.fieldErrors.categoryId[0]}
-                      </p>
-                    )}
-                  </div>
+                  <CategorySelect
+                    label="Select Category"
+                    value={newProduct.categoryId}
+                    onValueChange={(value) => {
+                      setNewProduct((prev) => ({
+                        ...prev,
+                        categoryId: value,
+                      }));
+                    }}
+                    error={formErrors?.fieldErrors?.categoryId?.[0]}
+                    disabled={isPending}
+                  />
                 </div>
 
                 <div className="space-y-2">

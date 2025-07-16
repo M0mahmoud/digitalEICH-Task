@@ -5,31 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, ChevronsUpDown, Loader2, Save } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAllCategories } from "@/hooks/categories";
-import { ICategory, IProduct } from "@/types/products";
+import { Loader2, Save } from "lucide-react";
+import { IProduct } from "@/types/products";
 import { editProductSchema } from "@/lib/zod-schema";
 import { z } from "zod";
+import CategorySelect from "@/components/ui/category-select";
 
 type EditFormData = z.infer<typeof editProductSchema>;
 
@@ -48,7 +34,6 @@ export default function EditProductForm({
   onUpdate,
   isPending = false,
 }: EditProductFormProps) {
-  const [open, setOpen] = useState(false);
   const [formErrors, setFormErrors] = useState<{
     formErrors?: string[];
     fieldErrors?: Record<string, string[]>;
@@ -59,9 +44,6 @@ export default function EditProductForm({
     description: "",
     categoryId: "",
   });
-
-  const { data: categories, isLoading: isLoadingCategories } =
-    useAllCategories();
 
   // Initialize form with product data when product changes
   useEffect(() => {
@@ -100,7 +82,6 @@ export default function EditProductForm({
 
   const handleClose = () => {
     setFormErrors(null);
-    setOpen(false);
     onClose();
   };
 
@@ -157,70 +138,18 @@ export default function EditProductForm({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Select Category</Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-full justify-between"
-                    >
-                      {editProduct.categoryId
-                        ? categories?.find(
-                            (cat: ICategory) =>
-                              String(cat.id) === editProduct.categoryId
-                          )?.name || "Select Category"
-                        : "Select Category"}
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search categories..."
-                        className="h-9"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No categories found</CommandEmpty>
-                        <CommandGroup>
-                          {!isLoadingCategories &&
-                            categories?.map((category: ICategory) => (
-                              <CommandItem
-                                key={category.id}
-                                value={String(category.id)}
-                                onSelect={(currentValue) => {
-                                  setEditProduct((prev) => ({
-                                    ...prev,
-                                    categoryId: currentValue,
-                                  }));
-                                  setOpen(false);
-                                }}
-                              >
-                                {category.name}
-                                <Check
-                                  className={cn(
-                                    "ml-auto",
-                                    editProduct.categoryId ===
-                                      String(category.id)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.fieldErrors?.categoryId && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.fieldErrors.categoryId[0]}
-                  </p>
-                )}
-              </div>
+              <CategorySelect
+                label="Select Category"
+                value={editProduct.categoryId}
+                onValueChange={(value) => {
+                  setEditProduct((prev) => ({
+                    ...prev,
+                    categoryId: value,
+                  }));
+                }}
+                error={formErrors?.fieldErrors?.categoryId?.[0]}
+                disabled={isPending}
+              />
             </div>
 
             <div className="space-y-2">
